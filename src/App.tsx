@@ -7,6 +7,7 @@ import IndicatorWeather from './components/IndicatorWeather';
 import TableWeather from './components/TableWeather';
 import ControlWeather from './components/ControlWeather';
 import LineChartWeather from './components/LineChartWeather';
+import Item from './interface/Item';
 {/*hooks */}
 
 import { useEffect, useState } from 'react';
@@ -22,6 +23,7 @@ function App() {
   {/* Variable de estado y función de actualización */}
   let [indicators, setIndicators] = useState<Indicator[]>([])
   let [owm, setOWM] = useState(localStorage.getItem("openWeatherMap"))
+  const [items, setItems] = useState<Item[]>([]);
 
   {/* Hook: useEffect */}
   useEffect( ()=>{
@@ -90,10 +92,29 @@ function App() {
         let altitude = location.getAttribute("altitude") || ""
         dataToIndicators.push({ "title": "Location", "subtitle": "Altitude", "value": altitude })
 
+        
+
         //console.log( dataToIndicators )
          {/* Modificación de la variable de estado mediante la función de actualización */}
          setIndicators( dataToIndicators )
+        
+         const dataToItems: Item[] = [];
+      const time = Array.from(xml.getElementsByTagName('time')).slice(0, 6);
+
+      time.forEach((timeNode) => {
+        const from = timeNode.getAttribute('from') || '';
+        const to = timeNode.getAttribute('to') || '';
+        const precipitation = timeNode.getElementsByTagName('precipitation')[0]?.getAttribute('probability') || '';
+        const humidity = timeNode.getElementsByTagName('humidity')[0]?.getAttribute('value') || '';
+        const clouds = timeNode.getElementsByTagName('clouds')[0]?.getAttribute('all') || '';
+        dataToItems.push({ dateStart: from, dateEnd: to, precipitation, humidity, clouds });
+      });
+
+      setItems(dataToItems);
+
       }
+      
+      
     }
 
     request();
@@ -145,7 +166,7 @@ function App() {
         <ControlWeather/>
       </Grid>
       <Grid size={{ xs: 12, xl: 9 }}>
-        <TableWeather/>
+        <TableWeather itemsIn={items}/>
       </Grid>
     </Grid>
 </Grid>
